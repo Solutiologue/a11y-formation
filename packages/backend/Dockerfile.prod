@@ -15,7 +15,7 @@ COPY packages/database/package.json ./packages/database/
 
 # Installer les dépendances
 WORKDIR /app/packages/backend
-RUN npm install --prefer-offline --no-audit 2>&1 | grep -v "npm warn" || true
+RUN npm install --include=dev --prefer-offline --no-audit 2>&1 | grep -v "npm warn" || true
 
 # Copier le code source
 COPY packages/backend ./
