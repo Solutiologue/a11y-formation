@@ -3,7 +3,7 @@ import { Database } from "@hocuspocus/extension-database";
 import { Logger } from "@hocuspocus/extension-logger";
 import { prisma } from "./config/prisma";
 
-const server = Server.configure({
+const server = new Server({
   port: 1234,
   name: "a11y-collaboration",
   
