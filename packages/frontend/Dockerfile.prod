@@ -17,7 +17,7 @@ COPY packages/frontend ./packages/frontend
 
 # Build pour production
 WORKDIR /app/packages/frontend
-RUN ./node_modules/.bin/vite build
+RUN npm run build
 
 # Nginx stage
 FROM nginx:alpine
