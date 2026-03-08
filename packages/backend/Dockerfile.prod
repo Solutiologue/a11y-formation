@@ -1,0 +1,47 @@
+# Backend Dockerfile - Production Build
+FROM node:18-alpine as builder
+
+# Installer OpenSSL pour Prisma
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+# Copier le root package.json
+COPY package.json ./
+
+# Copier les fichiers package
+COPY packages/backend/package.json ./packages/backend/
+COPY packages/database/package.json ./packages/database/
+
+# Installer les dépendances
+WORKDIR /app/packages/backend
+RUN npm install --prefer-offline --no-audit 2>&1 | grep -v "npm warn" || true
+
+# Copier le code source
+COPY packages/backend ./
+COPY packages/database/prisma ../database/prisma
+
+# Générer Prisma Client
+RUN npx prisma generate --schema=../database/prisma/schema.prisma
+
+# Build Next.js
+RUN npm run build
+
+# Runtime stage
+FROM node:18-alpine
+
+# Installer OpenSSL pour Prisma
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+# Copier depuis l'étape builder
+COPY --from=builder /app/packages/backend ./
+COPY --from=builder /app/packages/database/prisma ./database/prisma
+COPY --from=builder /app/node_modules ./node_modules
+
+EXPOSE 3000
+
+ENV NODE_ENV=production
+
+CMD ["npm", "start"]

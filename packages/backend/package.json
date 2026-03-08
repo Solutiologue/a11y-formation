@@ -1,0 +1,42 @@
+{
+  "name": "@a11y/backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@hocuspocus/extension-database": "^3.4.4",
+    "@hocuspocus/extension-logger": "^3.4.4",
+    "@hocuspocus/server": "^3.4.4",
+    "@hocuspocus/transformer": "^3.4.4",
+    "@prisma/client": "^5.7.0",
+    "@types/qrcode": "^1.5.6",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "encode-utf8": "^2.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "next": "^16.1.6",
+    "otplib": "^12.0.1",
+    "qrcode": "^1.5.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.29"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/node": "^20.19.37",
+    "@types/react": "^18.2.37",
+    "prisma": "^5.22.0",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:vue/vue3-recommended",
+    "@vue/eslint-config-typescript"
+  ],
+  "parserOptions": {
+    "parser": "@typescript-eslint/parser",
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "extraFileExtensions": [".vue"]
+  },
+  "rules": {
+    "vue/multi-word-component-names": "off",
+    "no-console": "warn",
+    "no-debugger": "warn"
+  }
+}

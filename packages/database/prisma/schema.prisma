@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id           String               @id @default(uuid())
+  code         String               @unique @db.VarChar(8)
+  schoolId     String?              @map("school_id")
+  campusIds    String?              @map("campus_ids") @db.Text
+  config       Json?
+  createdAt    DateTime             @default(now()) @map("date_creation")
+  startDate    DateTime?            @map("date_debut")
+  endDate      DateTime?            @map("date_fin")
+  traineeCount Int                  @default(0) @map("nbr_stagiaire")
+  chapters     Chapter[]            @relation("SessionChapters")
+  school       School?              @relation("SchoolSessions", fields: [schoolId], references: [id])
+  activities   TraineeActivityLog[] @relation("SessionActivities")
+  trainees     Trainee[]            @relation("SessionTrainees")
+  trainers     Trainer[]            @relation("SessionTrainers")
+
+  @@index([schoolId], map: "sessions_school_id_fkey")
+  @@map("sessions")
+}
+
+model School {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  campuses Campus[]  @relation("SchoolCampuses")
+  sessions Session[] @relation("SchoolSessions")
+
+  @@map("schools")
+}
+
+model Campus {
+  id       String    @id @default(cuid()) @map("id_campus")
+  name     String    @map("nom_campus")
+  schoolId String    @map("school_id")
+  school   School    @relation("SchoolCampuses", fields: [schoolId], references: [id])
+  trainees Trainee[] @relation("CampusTrainees")
+
+  @@index([schoolId], map: "campus_school_id_fkey")
+  @@map("campus")
+}
+
+model Trainee {
+  id         String               @id @default(cuid())
+  email      String               @unique
+  lastname   String
+  firstname  String
+  photo      String?              @map("photo_identite") @db.MediumText
+  password   String               @map("password_hash")
+  isLocked   Boolean              @default(false) @map("is_locked")
+  isDeleted  Boolean              @default(false) @map("is_deleted")
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+  sessionId  String?              @map("session_id")
+  campusId   String?              @map("campus_id")
+  notes      Note[]               @relation("TraineeNotes")
+  activities TraineeActivityLog[] @relation("TraineeActivities")
+  campus     Campus?              @relation("CampusTrainees", fields: [campusId], references: [id])
+  session    Session?             @relation("SessionTrainees", fields: [sessionId], references: [id])
+
+  @@index([campusId], map: "trainees_campus_id_fkey")
+  @@index([sessionId], map: "trainees_session_id_fkey")
+  @@map("trainees")
+}
+
+model TraineeActivityLog {
+  id        String   @id @default(cuid())
+  type      String
+  timestamp DateTime @default(now())
+  metadata  Json?
+  traineeId String   @map("trainee_id")
+  sessionId String   @map("session_id")
+  session   Session  @relation("SessionActivities", fields: [sessionId], references: [id], onDelete: Cascade)
+  trainee   Trainee  @relation("TraineeActivities", fields: [traineeId], references: [id], onDelete: Cascade)
+
+  @@index([traineeId, timestamp])
+  @@index([sessionId, timestamp])
+  @@map("trainee_activity_logs")
+}
+
+model Chapter {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  isLocked    Boolean  @default(true) @map("is_locked")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  sessionId   String   @map("session_id")
+  session     Session  @relation("SessionChapters", fields: [sessionId], references: [id], onDelete: Cascade)
+  slides      Slide[]  @relation("ChapterSlides")
+
+  @@index([sessionId], map: "chapters_session_id_fkey")
+  @@map("chapters")
+}
+
+model Slide {
+  id        String   @id @default(uuid())
+  title     String
+  content   String?  @db.LongText
+  order     Int      @default(0)
+  isLocked  Boolean  @default(true) @map("is_locked")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  chapterId String   @map("chapter_id")
+  notes     Note[]   @relation("SlideNotes")
+  chapter   Chapter  @relation("ChapterSlides", fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([chapterId], map: "slides_chapter_id_fkey")
+  @@map("slides")
+}
+
+model CollaborationDocument {
+  name      String   @id
+  data      Bytes
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("collaboration_documents")
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  content   String?  @db.LongText
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  traineeId String   @map("trainee_id")
+  slideId   String   @map("slide_id")
+  slide     Slide    @relation("SlideNotes", fields: [slideId], references: [id], onDelete: Cascade)
+  trainee   Trainee  @relation("TraineeNotes", fields: [traineeId], references: [id], onDelete: Cascade)
+
+  @@unique([traineeId, slideId])
+  @@index([slideId], map: "notes_slide_id_fkey")
+  @@map("notes")
+}
+
+model Trainer {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  firstname  String
+  lastname   String
+  totpSecret String?  @map("totp_secret")
+  magicLink  String?  @unique @map("magic_link") @db.VarChar(255)
+  resetTotp  Boolean  @default(true) @map("reset_totp")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  sessionId  String?  @map("session_id")
+  session    Session? @relation("SessionTrainers", fields: [sessionId], references: [id])
+
+  @@index([sessionId], map: "trainers_session_id_fkey")
+  @@map("trainers")
+}

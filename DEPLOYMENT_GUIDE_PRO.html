@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide de Déploiement Production - a11y-formation</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --container-bg: #161b22;
+            --text-color: #c9d1d9;
+            --accent-color: #58a6ff;
+            --secondary-color: #238636;
+            --border-color: #30363d;
+            --code-bg: #000000;
+            --warning-color: #d29922;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: var(--container-bg);
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        h1 { border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; color: var(--accent-color); }
+        h2 { margin-top: 30px; color: var(--accent-color); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        h3 { color: var(--secondary-color); margin-top: 25px; }
+
+        code {
+            background-color: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+            color: #ff7b72;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        pre code {
+            color: #d1d5da;
+            padding: 0;
+            background: none;
+        }
+
+        .step {
+            margin-bottom: 40px;
+            padding-left: 20px;
+            border-left: 3px solid var(--border-color);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 12px;
+            background-color: var(--secondary-color);
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .warning {
+            background-color: rgba(210, 153, 34, 0.1);
+            border: 1px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .tip {
+            border-left: 4px solid var(--secondary-color);
+            padding: 10px 20px;
+            background: rgba(35, 134, 54, 0.05);
+            margin: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Déploiement Production : a11y-formation</h1>
+        <p>Ce guide détaille la mise en service sécurisée de l'application sur un VPS <strong>Rocky Linux 9</strong> (IONOS).</p>
+
+        <div class="warning">
+            <strong>Note de sécurité :</strong> Ne lancez jamais ces commandes en mode <code>root</code> pur sans comprendre l'impact. Utilisez un utilisateur <code>sudo</code> dédié.
+        </div>
+
+        <div class="step">
+            <span class="badge">ÉTAPE 0</span>
+            <h2>Initialisation de l'Accès & Sudoers</h2>
+            <p>Sur un VPS IONOS, vous vous connectez souvent en <code>root</code> la première fois. Il est <strong>impératif</strong> de créer un utilisateur dédié pour ne pas compromettre tout le système.</p>
+            <pre><code># 1. Créer l'utilisateur (remplacez 'deployuser' par votre nom)
+adduser deployuser
+
+# 2. Définir un mot de passe robuste
+passwd deployuser
+
+# 3. Ajouter aux sudoers (autorise les commandes d'administration)
+usermod -aG wheel deployuser
+
+# 4. Tester la connexion (Ouvrez un NOUVEAU terminal sur votre PC)
+ssh deployuser@VOTRE_IP_VPS
+# Puis testez le sudo :
+sudo whoami # Doit répondre 'root'</code></pre>
+            <div class="tip">
+                L'utilisateur fait maintenant partie du groupe <code>wheel</code>, l'équivalent de <code>sudo</code> sur Rocky/RHEL.
+            </div>
+        </div>
+
+        <div class="step">
+            <span class="badge">ÉTAPE 1</span>
+            <h2>Préparation du Système (OS hardening)</h2>
+            <p>Connectez-vous à votre VPS et commencez par sécuriser les bases de Rocky 9.</p>
+            <pre><code># Mise à jour complète
+sudo dnf update -y
+
+# Installation des outils de base
+sudo dnf install -y yum-utils device-mapper-persistent-data lvm2 git curl
+
+# Désactiver SELinux (optionnel mais recommandé pour Docker si vous débutez)
+sudo setenforce 0
+sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config</code></pre>
+        </div>
+
+        <div class="step">
+            <span class="badge">ÉTAPE 2</span>
+            <h2>Installation de Docker & Compose</h2>
+            <p>Rocky 9 vient avec Podman par défaut. Pour notre stack, nous installons Docker CE officiel.</p>
+            <pre><code># Supprimer les conflits
+sudo dnf remove -y podman buildah
+
+# Ajouter le repo Docker
+sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# Installer Docker
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# Lancer et activer au boot
+sudo systemctl enable --now docker
+
+# Ajouter votre utilisateur au groupe docker (éviter le sudo systématique)
+sudo usermod -aG docker $USER
+# Appliquer le changement de groupe :
+newgrp docker</code></pre>
+        </div>
+
+        <div class="step">
+            <span class="badge">ÉTAPE 3</span>
+            <h2>Configuration Firewall (Firewalld)</h2>
+            <p>C'est ici que la sécurité réseau se joue. On ne laisse ouvert que le strict nécessaire. Sur certaines installations minimales de Rocky 9, <code>firewalld</code> n'est pas installé par défaut.</p>
+            <pre><code># 1. Installer le service firewall
+sudo dnf install -y firewalld
+
+# 2. Lancer et activer le service
+sudo systemctl enable --now firewalld
+
+# 3. Autoriser HTTP, HTTPS et SSH
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --permanent --add-service=ssh
+
+# 4. Appliquer
+sudo firewall-cmd --reload
+
+# Vérifier
+sudo firewall-cmd --list-all</code></pre>
+        </div>
+
+        <div class="step">
+            <span class="badge">ÉTAPE 4</span>
+            <h2>Déploiement de l'Application</h2>
+            <p>Nous utilisons Git pour récupérer le code et Docker Compose pour orchestrer les services.</p>
+            <pre><code># Cloner le repo
+git clone [URL_DE_VOTRE_REPO]
+cd a11y-formation
+
+# Configurer les secrets de production (CRUCIAL)
+cp .env.example .env
+nano .env # Éditez vos mots de passe DB, JWT_SECRET, etc.
+
+# Lancer la stack en production
+./deploy-prod.sh</code></pre>
+            <div class="tip">
+                Le script <code>deploy-prod.sh</code> va construire les images optimisées pour le Backend (Next.js) et le Frontend (Nginx).
+            </div>
+        </div>
+
+        <div class="step">
+            <span class="badge">ÉTAPE 5</span>
+            <h2>Sécurisation SSL (Let's Encrypt)</h2>
+            <p>Pour passer en HTTPS, utilisez Certbot sur l'hôte pour gérer les certificats.</p>
+            <pre><code>sudo dnf install -y certbot
+# Si vous utilisez un reverse proxy externe (ex: Nginx sur le host) :
+sudo certbot certonly --standalone -d votre-domaine.fr</code></pre>
+        </div>
+
+        <div class="step">
+            <span class="badge">CONSEILS PRO</span>
+            <ul>
+                <li><strong>Logs :</strong> Surveillez avec <code>docker compose -f docker-compose.prod.yml logs -f</code></li>
+                <li><strong>Backup :</strong> Le volume <code>mysql_data</code> est stocké dans <code>/var/lib/docker/volumes/</code>. Configurez un cron pour sauvegarder ce dossier.</li>
+                <li><strong>Monitoring :</strong> Utilisez <code>htop</code> et <code>docker stats</code> régulièrement sur le VPS IONOS.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

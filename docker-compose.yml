@@ -1,0 +1,92 @@
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: a11y-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-a11y_formation}
+      MYSQL_USER: ${DB_USER:-app_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-apppassword}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - a11y-network
+
+  # Backend API (Next.js)
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: a11y-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: mysql://${DB_USER:-app_user}:${DB_PASSWORD:-apppassword123}@db:3306/${DB_NAME:-a11y_formation}
+      API_URL: http://localhost:3005
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-in-production}
+    ports:
+      - "${BACKEND_PORT:-3005}:3005"
+      - "1234:1234"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./packages/backend/src:/app/src
+      - ./packages/backend/app:/app/app
+      - ./packages/backend/tsconfig.json:/app/tsconfig.json
+      - ./packages/backend/next.config.js:/app/next.config.js
+      - ./packages/database/prisma:/app/prisma
+    networks:
+      - a11y-network
+    command: npm run dev
+
+  # Frontend (Vue.js)
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    container_name: a11y-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3005/api}
+    ports:
+      - "${FRONTEND_PORT:-5175}:5175"
+    depends_on:
+      - backend
+    volumes:
+      - ./packages/frontend/src:/app/packages/frontend/src
+      - ./packages/frontend/public:/app/packages/frontend/public
+      - ./packages/frontend/index.html:/app/packages/frontend/index.html
+      - ./packages/frontend/vite.config.ts:/app/packages/frontend/vite.config.ts
+    networks:
+      - a11y-network
+    command: npm run dev
+
+  # Adminer (database management UI)
+  adminer:
+    image: adminer:latest
+    container_name: a11y-adminer
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8085}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - a11y-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  a11y-network:
+    driver: bridge

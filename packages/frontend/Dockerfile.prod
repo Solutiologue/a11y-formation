@@ -1,0 +1,33 @@
+# Frontend Dockerfile - Production Build (Nginx)
+FROM node:18-alpine as builder
+
+WORKDIR /app
+
+# Copier le root package.json
+COPY package.json ./
+
+# Copier les fichiers package du frontend
+COPY packages/frontend/package.json ./packages/frontend/
+
+# Installer les dépendances
+WORKDIR /app/packages/frontend
+RUN npm install --prefer-offline --no-audit 2>&1 | grep -v "npm warn" || true
+
+# Copier le code source
+COPY packages/frontend ./
+
+# Build pour production
+RUN npm run build
+
+# Nginx stage
+FROM nginx:alpine
+
+# Copier la configuration Nginx
+COPY packages/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copier les fichiers buildés
+COPY --from=builder /app/packages/frontend/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

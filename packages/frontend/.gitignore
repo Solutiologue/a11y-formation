@@ -1,0 +1,41 @@
+# Docs for the public API
+/coverage
+
+# Nuxt dist files
+.nuxt
+dist
+
+# Nuxt generate
+dist
+
+node_modules
+
+# cache
+.eslintcache
+
+# Vite
+.vite
+
+# IDEs and editors
+.idea/
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc
+*.sw[op]
+*~
+.DS_Store
+
+# local env files
+.env*.local
+.env

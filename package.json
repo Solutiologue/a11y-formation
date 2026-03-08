@@ -1,0 +1,25 @@
+{
+  "name": "a11y-formation",
+  "version": "1.0.0",
+  "description": "Monorepo for accessibility formation - Vue.js frontend, Next.js backend, MySQL database",
+  "private": true,
+  "workspaces": [
+    "packages/frontend",
+    "packages/backend",
+    "packages/database"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=packages/frontend\" \"npm run dev --workspace=packages/backend\"",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "y-protocols": "^1.0.7",
+    "y-webrtc": "^10.3.0",
+    "yjs": "^13.6.29"
+  }
+}
