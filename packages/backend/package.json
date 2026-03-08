@@ -12,6 +12,9 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio"
   },
+  "devDependencies": {
+    "@types/speakeasy": "^2.0.7"
+  },
   "dependencies": {
     "@hocuspocus/extension-database": "^3.4.4",
     "@hocuspocus/extension-logger": "^3.4.4",
