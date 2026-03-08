@@ -1,5 +1,5 @@
 # Backend Dockerfile - Next.js/Node.js
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Installer OpenSSL et bash pour le script
 RUN apk add --no-cache openssl bash
