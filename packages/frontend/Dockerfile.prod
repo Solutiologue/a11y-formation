@@ -3,22 +3,20 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# Copier le root package.json
+# Copier le root package.json ET les fichiers de workspace
 COPY package.json ./
-
-# Copier les fichiers package du frontend
 COPY packages/frontend/package.json ./packages/frontend/
 
-# Installer les dépendances
-WORKDIR /app/packages/frontend
-# Utiliser --include=dev car vite est dans devDependencies
-RUN npm install --include=dev --prefer-offline --no-audit 2>&1 | grep -v "npm warn" || true
+# Installer TOUTES les dépendances depuis la racine
+# En monorepo, npm a besoin du contexte global pour résoudre les liens
+RUN npm install --include=dev --prefer-offline --no-audit
 
-# Copier le code source
-COPY packages/frontend ./
+# Copier le code source du frontend
+COPY packages/frontend ./packages/frontend
 
 # Build pour production
-RUN npm run build
+WORKDIR /app/packages/frontend
+RUN ./node_modules/.bin/vite build
 
 # Nginx stage
 FROM nginx:alpine
