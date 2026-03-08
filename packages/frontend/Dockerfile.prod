@@ -11,7 +11,8 @@ COPY packages/frontend/package.json ./packages/frontend/
 
 # Installer les dépendances
 WORKDIR /app/packages/frontend
-RUN npm install --prefer-offline --no-audit 2>&1 | grep -v "npm warn" || true
+# Utiliser --include=dev car vite est dans devDependencies
+RUN npm install --include=dev --prefer-offline --no-audit 2>&1 | grep -v "npm warn" || true
 
 # Copier le code source
 COPY packages/frontend ./
