@@ -50,19 +50,19 @@ fi
 # Build images
 echo ""
 echo "3️⃣  Building Docker images..."
-docker-compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml build
 print_success "Images built"
 
 # Stop old containers
 echo ""
 echo "4️⃣  Stopping old containers..."
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 print_success "Old containers stopped"
 
 # Start new containers
 echo ""
 echo "5️⃣  Starting new containers..."
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 print_success "New containers started"
 
 # Wait for database

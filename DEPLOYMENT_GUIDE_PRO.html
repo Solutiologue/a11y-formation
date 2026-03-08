@@ -150,7 +150,7 @@ sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config</code
         <div class="step">
             <span class="badge">ÉTAPE 2</span>
             <h2>Installation de Docker & Compose</h2>
-            <p>Rocky 9 vient avec Podman par défaut. Pour notre stack, nous installons Docker CE officiel.</p>
+            <p>Rocky 9 vient avec Podman par défaut. Pour notre stack, nous installons Docker CE officiel. <strong>Note :</strong> Nous utilisons Docker Compose V2 (<code>docker compose</code> sans tiret).</p>
             <pre><code># Supprimer les conflits
 sudo dnf remove -y podman buildah
 
