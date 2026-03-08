@@ -9,7 +9,8 @@ COPY packages/frontend/package.json ./packages/frontend/
 
 # Installer TOUTES les dépendances depuis la racine
 # En monorepo, npm a besoin du contexte global pour résoudre les liens
-RUN npm install --include=dev --prefer-offline --no-audit
+# --legacy-peer-deps est nécessaire pour résoudre les conflits entre ESLint et les plugins Vue
+RUN npm install --include=dev --prefer-offline --no-audit --legacy-peer-deps
 
 # Copier le code source du frontend
 COPY packages/frontend ./packages/frontend
