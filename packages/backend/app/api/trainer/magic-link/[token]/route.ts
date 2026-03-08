@@ -3,10 +3,11 @@ import { TrainerService } from '@/modules/trainer/service'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const result = await TrainerService.validateMagicLink(params.token)
+    const { token } = await params
+    const result = await TrainerService.validateMagicLink(token)
     return NextResponse.json(result)
   } catch (error) {
     console.error('Magic link validation error:', error)
