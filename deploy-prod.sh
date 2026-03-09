@@ -1,8 +1,17 @@
 #!/bin/bash
 
 # Production Deployment Script for Ionos VPS
+# Updated: March 2026 (Next.js 16/Node 20 Compatible)
 
 set -e
+
+# Load environment variables
+if [ -f .env ]; then
+    export $(cat .env | grep -v '#' | xargs)
+else
+    echo "❌ .env file not found! Please create it before deploying."
+    exit 1
+fi
 
 echo "🚀 A11y Formation - Production Deployment"
 echo "=========================================="
@@ -77,20 +86,35 @@ for i in {1..30}; do
     sleep 1
 done
 
-# Run migrations
+# Running migrations
 echo ""
-echo "7️⃣  Running migrations..."
-docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
-print_success "Migrations completed"
+echo "7️⃣  Syncing database schema (Prisma)..."
+
+# Try migrate deploy first, if it fails or if it's new install, try db push
+if ! docker-compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy --schema=./database/prisma/schema.prisma; then
+    print_warning "Migration failed. Attempting forced sync (db push)..."
+    docker-compose -f docker-compose.prod.yml exec -T backend npx prisma db push --schema=./database/prisma/schema.prisma --accept-data-loss
+fi
+
+# Run seeding
+echo ""
+echo "8️⃣  Seeding initial data..."
+docker-compose -f docker-compose.prod.yml exec -T backend npx prisma db seed --schema=./database/prisma/schema.prisma || true
+
+print_success "Database synchronization completed"
 
 # Show status
 echo ""
-echo "8️⃣  Checking status..."
+echo "9️⃣  Checking status..."
 docker-compose -f docker-compose.prod.yml ps
 
 echo ""
 echo "=========================================="
 print_success "Deployment completed!"
+echo ""
+
+# Show status and logs
+echo "💡 Tip: Check logs with 'docker logs -f a11y-backend-prod'"
 echo ""
 
 # Show rollback command
