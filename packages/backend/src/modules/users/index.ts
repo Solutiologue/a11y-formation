@@ -1,5 +1,5 @@
 // src/modules/users/route.ts
-import { NextRequest, NextResponse } from 'next'
+import { NextRequest, NextResponse } from 'next/server'
 import { UserController } from './controller'
 
 const userController = new UserController()
