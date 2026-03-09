@@ -179,10 +179,11 @@ sudo dnf install -y firewalld
 # 2. Lancer et activer le service
 sudo systemctl enable --now firewalld
 
-# 3. Autoriser HTTP, HTTPS et SSH
+# 3. Autoriser HTTP, HTTPS, SSH et Adminer (temporaire)
 sudo firewall-cmd --permanent --add-service=http
 sudo firewall-cmd --permanent --add-service=https
 sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-port=8080/tcp # Port d'Adminer
 
 # 4. Appliquer
 sudo firewall-cmd --reload
@@ -193,25 +194,57 @@ sudo firewall-cmd --list-all</code></pre>
 
         <div class="step">
             <span class="badge">ÉTAPE 4</span>
-            <h2>Déploiement de l'Application</h2>
-            <p>Nous utilisons Git pour récupérer le code et Docker Compose pour orchestrer les services.</p>
-            <pre><code># Cloner le repo
+            <h2>Déploiement & Configuration</h2>
+            <p>Nous utilisons Git pour récupérer le code et Docker Compose pour orchestrer les services. <strong>Note :</strong> L'application nécessite désormais Node 20 (Next.js 16).</p>
+            <pre><code># 1. Cloner le repo
 git clone [URL_DE_VOTRE_REPO]
 cd a11y-formation
 
-# Configurer les secrets de production (CRUCIAL)
-cp .env.example .env
-nano .env # Éditez vos mots de passe DB, JWT_SECRET, etc.
+# 2. Configurer le .env (CRUCIAL)
+# Assurez-vous d'avoir DATABASE_URL=mysql://USER:PASS@db:3306/DB_NAME
+nano .env 
 
-# Lancer la stack en production
-./deploy-prod.sh</code></pre>
+# 3. Construire les images (Node 20 / Next 16)
+docker compose -f docker-compose.prod.yml build --no-cache
+
+# 4. Lancer la stack en production
+docker compose -f docker-compose.prod.yml up -d
+
+# 5. Initialiser la Base de Données (Prisma)
+# Synchronisation forcée du schéma
+docker exec a11y-backend-prod npx prisma db push --schema=./database/prisma/schema.prisma --accept-data-loss
+
+# Peupler les données de base (Écoles, Formateurs, Chapitres)
+docker exec a11y-backend-prod npx prisma db seed --schema=./database/prisma/schema.prisma</code></pre>
             <div class="tip">
-                Le script <code>deploy-prod.sh</code> va construire les images optimisées pour le Backend (Next.js) et le Frontend (Nginx).
+                Si la commande <code>seed</code> échoue, utilisez : <code>docker exec a11y-backend-prod node database/prisma/seed.js</code>.
             </div>
         </div>
 
         <div class="step">
             <span class="badge">ÉTAPE 5</span>
+            <h2>Outils d'Administration</h2>
+            <p>Un serveur <strong>Adminer</strong> est inclus pour gérer visuellement votre base MySQL.</p>
+            <ul>
+                <li><strong>Accès :</strong> <code>http://VOTRE_IP:8080</code></li>
+                <li><strong>Système :</strong> MySQL | <strong>Serveur :</strong> <code>db</code></li>
+                <li><strong>Sécurité :</strong> Pensez à arrêter le container après usage : <code>docker stop a11y-adminer-prod</code></li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="badge">MIGRATION MARS 2026</span>
+            <h2>Correctifs Appliqués (v1.1)</h2>
+            <ul>
+                <li><strong>Next.js 16 :</strong> Dockerfiles migrés vers <code>node:20-alpine</code>.</li>
+                <li><strong>Types TS :</strong> Correction des <code>params</code> asynchrones (Promise) et ajout de <code>@types/speakeasy</code>, <code>bcryptjs</code>, <code>jsonwebtoken</code>.</li>
+                <li><strong>Prisma :</strong> Correction du modèle <code>Trainee</code> (isArchived -> isDeleted) et gestion des champs <code>null</code>.</li>
+                <li><strong>Collaboration :</strong> Correction de l'instanciation Hocuspocus (<code>new Server()</code>).</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="badge">ÉTAPE 6</span>
             <h2>Sécurisation SSL (Let's Encrypt)</h2>
             <p>Pour passer en HTTPS, utilisez Certbot sur l'hôte pour gérer les certificats.</p>
             <pre><code>sudo dnf install -y certbot
