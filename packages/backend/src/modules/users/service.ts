@@ -148,7 +148,7 @@ export class UserService {
   async archiveUser(id: string): Promise<User> {
     return prisma.trainee.update({
       where: { id },
-      data: { isArchived: true },
+      data: { isDeleted: true },
     })
   }
 
