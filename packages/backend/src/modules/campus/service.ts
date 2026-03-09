@@ -1,9 +1,9 @@
 import { prisma } from '../../config/prisma'
 
 export class CampusService {
-  async getBySchool(school: string) {
+  async getBySchool(schoolId: string) {
     return prisma.campus.findMany({
-      where: { school },
+      where: { schoolId },
       orderBy: { name: 'asc' }
     })
   }

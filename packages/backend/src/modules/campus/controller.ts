@@ -7,16 +7,16 @@ export class CampusController {
   async getBySchool(req: NextRequest) {
     try {
       const { searchParams } = new URL(req.url)
-      const school = searchParams.get('school')
+      const schoolId = searchParams.get('school')
 
-      if (!school) {
+      if (!schoolId) {
         return NextResponse.json(
           { success: false, error: 'School not specified' },
           { status: 400 }
         )
       }
 
-      const campuses = await campusService.getBySchool(school)
+      const campuses = await campusService.getBySchool(schoolId)
       return NextResponse.json({
         success: true,
         data: campuses
