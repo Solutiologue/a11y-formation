@@ -8,7 +8,7 @@ export interface User {
   password: string
   isLocked: boolean
   isDeleted: boolean
-  isArchived: boolean
+  isArchived?: boolean
   createdAt: Date
   updatedAt: Date
   sessionId?: string
