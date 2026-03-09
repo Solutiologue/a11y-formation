@@ -4,15 +4,15 @@ export interface User {
   email: string
   lastname: string
   firstname: string
-  photo?: string
+  photo?: string | null
   password: string
   isLocked: boolean
   isDeleted: boolean
   isArchived?: boolean
   createdAt: Date
   updatedAt: Date
-  sessionId?: string
-  campusId?: string
+  sessionId?: string | null
+  campusId?: string | null
   campus?: any
   session?: any
 }
