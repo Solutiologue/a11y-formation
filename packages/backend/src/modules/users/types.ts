@@ -3,7 +3,8 @@ export interface CreateUserDTO {
   email: string
   lastname: string
   firstname: string
-  sessionId?: string
+  sessionId?: string | null
+  campusId?: string | null
   password?: string
 }
 
@@ -11,7 +12,8 @@ export interface UpdateUserDTO {
   email?: string
   lastname?: string
   firstname?: string
-  sessionId?: string
+  sessionId?: string | null
+  campusId?: string | null
 }
 
 export interface UserResponse {
