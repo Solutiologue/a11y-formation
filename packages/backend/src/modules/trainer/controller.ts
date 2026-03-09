@@ -5,12 +5,13 @@ import { TrainerService } from './service'
 export class TrainerController {
   static async requestOTP(request: NextRequest) {
     try {
-      const body = await request.json()
-      const { email } = body
+      // Sécurisation du parse JSON pour le VPS (Next.js 15/16)
+      const body = await request.json().catch(() => null)
+      const email = body?.email
 
       if (!email) {
         return NextResponse.json(
-          { success: false, message: 'Email requis' },
+          { success: false, message: 'Email manquant ou invalide' },
           { status: 400 }
         )
       }
