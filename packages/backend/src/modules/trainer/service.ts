@@ -109,7 +109,17 @@ export class TrainerService {
   }
 
   // Finaliser la setup du TOTP après validation du code OTP
-  static async setupTotp(email: string, otpCode: string, magicLink: string): Promise<{ success: boolean; message: string; token?: string }> {
+  static async setupTotp(
+    email: string,
+    otpCode: string,
+    magicLink: string
+  ): Promise<{
+    success: boolean
+    message: string
+    token?: string
+    trainer?: any
+    data?: any
+  }> {
     // Vérifier le magic link
     const trainer = await prisma.trainer.findUnique({
       where: { magicLink },
