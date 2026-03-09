@@ -69,6 +69,18 @@ services:
       timeout: 10s
       retries: 3
 
+  # Adminer - SQL Management UI
+  adminer:
+    image: adminer
+    container_name: a11y-adminer-prod
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - a11y-network
+    depends_on:
+      - db
+
   # Reverse Proxy / Load Balancer (optional - Traefik)
   # traefik:
   #   image: traefik:v2.10
