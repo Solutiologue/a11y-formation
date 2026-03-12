@@ -214,11 +214,16 @@
       <div v-if="currentChapter && !isPaused" class="slide-wrapper-container">
         <div class="slide-wrapper" :style="{ transform: `scale(${scale})` }">
           <div class="slide-header">
-            <h1 v-if="currentSlide">{{ currentSlide.title }}</h1>
+            <h1 v-if="activeSlideIndex >= 0 && currentChapter.slides?.[activeSlideIndex]">
+              {{ currentChapter.slides[activeSlideIndex].title }}
+            </h1>
             <h1 v-else>{{ currentChapter.title }}</h1>
           </div>
           <div class="slide-content" ref="slideContent">
-            <div v-if="currentSlide" class="slide-real-content" v-html="currentSlide.content"></div>
+            <div v-if="activeSlideIndex >= 0 && currentChapter.slides?.[activeSlideIndex]" 
+                 class="slide-real-content" 
+                 v-html="currentChapter.slides[activeSlideIndex].content">
+            </div>
             <div v-else class="slide-placeholder">
               <p>{{ currentChapter.description || 'Contenu de la slide en cours de chargement...' }}</p>
             </div>
@@ -2739,37 +2744,68 @@ const openProjection = () => {
 .slide-wrapper {
   width: 1920px;
   height: 1080px;
-  background: #1e293b;
+  background: #0f172a;
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
-  overflow: hidden;
   transform-origin: center center;
-  border: 4px solid #334155;
+  padding: 80px;
+  color: #f1f5f9;
   transition: transform 0.1s ease-out;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .slide-header {
-  padding: 2.5rem 3rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 2px solid #334155;
+  padding: 0;
+  margin-bottom: 40px;
+  border-bottom: 4px solid #3b82f6;
+  background: transparent;
 }
 
 .slide-header h1 {
-  font-size: 3.5rem;
+  font-size: 4rem;
+  color: #f1f5f9;
   margin: 0;
-  color: #f8fafc;
-  font-weight: 800;
+  padding-bottom: 20px;
 }
 
 .slide-content {
   flex: 1;
-  padding: 4rem;
+  padding: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.slide-real-content {
+  width: 100%;
+  height: 100%;
+  font-size: 2.5rem;
+  line-height: 1.4;
+  color: #cbd5e1;
+  text-align: left;
+}
+
+.slide-real-content :deep(ul), 
+.slide-real-content :deep(ol) {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding-left: 5rem;
+}
+
+.slide-real-content :deep(li) {
+  margin-bottom: 1.5rem;
+}
+
+.slide-real-content :deep(h2), 
+.slide-real-content :deep(h3) {
+  color: #38bdf8;
+  margin-bottom: 2.5rem;
+}
+
+.slide-real-content :deep(strong) {
+  color: #f1f5f9;
 }
 
 .slide-placeholder {

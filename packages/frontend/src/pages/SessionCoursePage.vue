@@ -1677,14 +1677,14 @@ onUnmounted(() => {
 .slide-wrapper {
   width: 1920px;
   height: 1080px;
-  background: white;
+  background: #0f172a;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
   position: relative;
   transform-origin: center center;
   padding: 80px;
-  color: #1e293b;
+  color: #f1f5f9;
   outline: none; /* Désactive l'outline par défaut du navigateur */
 }
 
@@ -1701,7 +1701,7 @@ onUnmounted(() => {
 
 .slide-header h1 {
   font-size: 4rem;
-  color: #1e293b;
+  color: #f1f5f9;
   margin: 0;
   padding-bottom: 20px;
 }
@@ -1717,8 +1717,29 @@ onUnmounted(() => {
 .slide-body-content {
   font-size: 2.5rem;
   line-height: 1.4;
-  color: #334155;
+  color: #cbd5e1;
   text-align: left;
+}
+
+.slide-body-content :deep(ul), 
+.slide-body-content :deep(ol) {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding-left: 5rem;
+}
+
+.slide-body-content :deep(li) {
+  margin-bottom: 1.5rem;
+}
+
+.slide-body-content :deep(h2), 
+.slide-body-content :deep(h3) {
+  color: #38bdf8;
+  margin-bottom: 2.5rem;
+}
+
+.slide-body-content :deep(strong) {
+  color: #f1f5f9;
 }
 
 .slide-footer {
@@ -1730,8 +1751,8 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 2px solid #e2e8f0;
-  color: #64748b;
+  border-top: 1px solid #1e293b;
+  color: #94a3b8;
   font-size: 1.5rem;
 }
 
